@@ -1,0 +1,57 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- C++ / CMake ---
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+*.o
+*.obj
+*.so
+*.pyd
+*.dll
+*.dylib
+
+# --- Market data and generated outputs ---
+# Raw exchange data is large, may be redistribution-restricted, and is always
+# reproducible by re-running a collector. Only small committed fixtures under
+# data/samples/ are tracked. See data/README.md.
+data/raw/**
+data/processed/**
+!data/**/.gitkeep
+!data/samples/**
+
+artifacts/models/**
+artifacts/metrics/**
+artifacts/figures/**
+!artifacts/**/.gitkeep
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.yaml
+credentials.json
+
+# --- Notebooks / editors / OS ---
+.ipynb_checkpoints/
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
+.DS_Store

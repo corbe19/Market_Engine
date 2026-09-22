@@ -273,14 +273,14 @@ Agents should work in milestone order unless a task is explicitly marked paralle
 
 Tasks:
 
-- [ ] Create the proposed directory structure.
-- [ ] Add Python environment, linting, formatting, type checking, and tests.
-- [ ] Add C++ build configuration and a minimal Python binding smoke test.
+- [x] Create the proposed directory structure.
+- [x] Add Python environment, linting, formatting, type checking, and tests.
+- [ ] Add C++ build configuration and a minimal Python binding smoke test. _(deferred to Milestone 7 — see decision log)_
 - [ ] Add configuration loading with documented defaults.
 - [ ] Add structured logging and run IDs.
 - [ ] Add CI for Python and C++ tests.
 - [ ] Write `AGENTS.md` with commands, conventions, and ownership rules.
-- [ ] Add `data/README.md` documenting data retention and privacy constraints.
+- [x] Add `data/README.md` documenting data retention and privacy constraints.
 
 Acceptance criteria:
 
@@ -645,9 +645,66 @@ Initial decisions still required:
 - [ ] Price/quantity integer scaling
 - [ ] Primary prediction horizon and movement threshold selection procedure
 - [ ] Storage partitioning and compression
-- [ ] Python dependency/build tooling
+- [x] Python dependency/build tooling
 - [ ] C++/Python boundary
 - [ ] Experiment tracking format
+
+### Recorded decisions
+
+```text
+Date: 2026-09-21
+Decision: Python package root is `src/market_engine/`, not bare `src/<module>/`.
+Context: Section 6 sketches `src/ingestion/`, `src/features/`, etc. with no
+  package namespace.
+Alternatives considered: (a) flat layout as literally drawn; (b) a top-level
+  `market_engine/` package with no `src/`.
+Reason: A bare `src/` tree is not installable or importable as a unit, and
+  generic names like `models/` and `api/` collide with third-party packages on
+  `sys.path`. A `src/` layout additionally forces imports to resolve through the
+  installed package rather than the working directory, so a test can never
+  accidentally pass against uninstalled local files. That is a reproducibility
+  guarantee, not a style preference (invariant 9).
+Consequences: Imports are `market_engine.orderbook`, not `orderbook`. Working on
+  the repo requires an editable install. Enforced by
+  `tests/unit/test_skeleton.py::test_package_resolves_to_src_not_cwd`.
+Owner: Milestone 0
+```
+
+```text
+Date: 2026-09-21
+Decision: Dependency and build tooling is stdlib `venv` + `pip` + a single
+  `pyproject.toml`, with zero runtime dependencies at Milestone 0.
+Context: Section 18 task 1 requires the skeleton "without adding unnecessary
+  dependencies."
+Alternatives considered: uv, Poetry, PDM, conda.
+Reason: uv is measurably faster but is not installed on the development machine
+  and adds a bootstrap step to the "one command sets up the environment"
+  acceptance criterion. `pyproject.toml` is the common substrate for all of
+  these, so migrating to uv later is a lockfile addition, not a rewrite. Runtime
+  deps stay empty so that an environment fault cannot be mistaken for a code
+  fault; each milestone adds only what it needs.
+Consequences: No lockfile yet, so builds are not byte-reproducible across
+  machines. Acceptable until Milestone 4, where model results start depending on
+  library versions — revisit and pin before the first reported experiment.
+Owner: Milestone 0
+```
+
+```text
+Date: 2026-09-21
+Decision: Defer all C++ build configuration to Milestone 7. `cpp/` exists as
+  empty scaffolding; no CMake, no pybind11, no binding smoke test yet.
+Context: Milestone 0 lists a C++ build config and binding smoke test. No C++
+  toolchain or CMake is present on the development machine.
+Alternatives considered: Install MSVC + CMake now and add a trivial binding.
+Reason: Invariant 8 permits native code only after profiling identifies a
+  bottleneck. There is no pipeline to profile yet, so a binding added now would
+  be maintained across seven milestones while proving nothing, and would make the
+  "clean checkout, one command" criterion depend on a compiler. Milestone 7 owns
+  the toolchain setup as part of its benchmark methodology.
+Consequences: Milestone 0's C++ task is intentionally left unchecked rather than
+  treated as complete. CI stays Python-only until Milestone 7.
+Owner: Milestone 0
+```
 
 ## 16. Project-Level Definition of Done
 
