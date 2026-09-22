@@ -10,9 +10,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
 # Runtime dependencies are added by the milestone that first needs them.
-# Milestone 0 deliberately has none: the skeleton must import and test with a
-# bare interpreter so environment problems cannot masquerade as code problems.
-dependencies = []
+# Each entry names the milestone that introduced it.
+dependencies = [
+    "pydantic>=2.7",   # M0: validated config; M0 task 3: MarketEvent/BookSnapshot contracts
+    "pyyaml>=6.0",     # M0: configs/*.yaml
+]
 
 [project.optional-dependencies]
 dev = [
@@ -20,6 +22,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.6",
     "mypy>=1.11",
+    "types-PyYAML>=6.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -36,6 +39,9 @@ markers = [
 
 [tool.ruff]
 src = ["src", "tests"]
+# Ruff >= 0.16 also formats Python fences in Markdown. Docs are prose; keep
+# them out of the formatter so a comment-alignment nit cannot fail CI.
+include = ["*.py", "*.pyi", "pyproject.toml"]
 line-length = 100
 target-version = "py311"
 
@@ -53,8 +59,9 @@ select = [
 [tool.mypy]
 python_version = "3.11"
 mypy_path = "src"
-packages = ["market_engine"]
+files = ["src", "tests", "scripts"]
 strict = true
+plugins = ["pydantic.mypy"]
 warn_unreachable = true
 # Point-in-time correctness depends on never silently mixing up timestamp
 # units or price representations, so implicit Any is treated as an error.

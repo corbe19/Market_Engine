@@ -276,10 +276,10 @@ Tasks:
 - [x] Create the proposed directory structure.
 - [x] Add Python environment, linting, formatting, type checking, and tests.
 - [ ] Add C++ build configuration and a minimal Python binding smoke test. _(deferred to Milestone 7 — see decision log)_
-- [ ] Add configuration loading with documented defaults.
-- [ ] Add structured logging and run IDs.
-- [ ] Add CI for Python and C++ tests.
-- [ ] Write `AGENTS.md` with commands, conventions, and ownership rules.
+- [x] Add configuration loading with documented defaults.
+- [x] Add structured logging and run IDs.
+- [x] Add CI for Python and C++ tests. *(Python only until Milestone 7 — see decision log)*
+- [x] Write `AGENTS.md` with commands, conventions, and ownership rules.
 - [x] Add `data/README.md` documenting data retention and privacy constraints.
 
 Acceptance criteria:
@@ -703,6 +703,52 @@ Reason: Invariant 8 permits native code only after profiling identifies a
   the toolchain setup as part of its benchmark methodology.
 Consequences: Milestone 0's C++ task is intentionally left unchecked rather than
   treated as complete. CI stays Python-only until Milestone 7.
+Owner: Milestone 0
+```
+
+```text
+Date: 2026-09-21
+Decision: Configuration is pydantic v2 models (`extra="forbid"`, `frozen=True`)
+  loaded from YAML, layered defaults -> file -> explicit overrides dict.
+Context: Milestone 0 requires "configuration loading with documented defaults."
+Alternatives considered: (a) dataclasses + stdlib `tomllib`, zero dependencies;
+  (b) pydantic-settings with environment-variable overrides for every field;
+  (c) Hydra/OmegaConf.
+Reason: Unknown-key rejection and immutability are the two properties that make
+  a recorded config trustworthy (invariant 9); pydantic gives both in two
+  keywords and dataclasses give neither without hand-rolled validation. Pydantic
+  is needed regardless for the `MarketEvent`/`BookSnapshot` contracts in the
+  next task, so it is not a speculative dependency. YAML because the plan names
+  `configs/*.yaml` and it reads better than TOML for nested sections. Per-field
+  env-var overrides (b) were rejected: they make "what config did this run use"
+  depend on ambient shell state, which is the exact failure mode invariant 9
+  exists to prevent. Only the config *file path* comes from the environment.
+  Hydra (c) is heavier than the problem.
+Consequences: Adding a setting means adding a typed field with a description
+  and regenerating `configs/development.yaml`; a test enforces the sync.
+  Runtime deps are now pydantic and pyyaml.
+Owner: Milestone 0
+```
+
+```text
+Date: 2026-09-21
+Decision: Structured logging is stdlib `logging` with a JSON-per-line
+  formatter; the run ID is a `contextvars.ContextVar` bound by
+  `run_context()`, formatted `YYYYMMDDTHHMMSSZ-<6 hex>`.
+Context: Milestone 0 requires "structured logging and run IDs."
+Alternatives considered: structlog or loguru; UUID4 or ULID for run IDs;
+  passing run_id explicitly through function signatures.
+Reason: Stdlib keeps the dependency surface at zero for this concern and
+  interoperates with every third-party library's existing loggers, which
+  structlog/loguru do not do transparently. Time-prefixed IDs sort in
+  execution order in a directory listing, which UUID4 does not; six hex chars
+  is enough to disambiguate runs within one second on one machine without a
+  ULID dependency. A ContextVar propagates into asyncio tasks automatically,
+  which the ingestion layer (M1) will rely on; explicit threading would touch
+  every signature in the pipeline.
+Consequences: `extra=` fields are the structured payload — facts belong there,
+  not in the message string. Metrics and drift alerts (M8) are built on the
+  JSON form. Every `scripts/*.py` entry point must open a `run_context()`.
 Owner: Milestone 0
 ```
 
