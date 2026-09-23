@@ -1,0 +1,6 @@
+# Production profile: the live inference service.
+# Only values that differ from configs/development.yaml appear here.
+
+run:
+  log_level: INFO
+  log_format: json

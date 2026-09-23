@@ -1,0 +1,20 @@
+# Development profile: every setting shown with its built-in default.
+#
+# The block below is generated from `market_engine.config.describe_defaults()`
+# and a test fails if it drifts from the code. Regenerate with:
+#   python -c "from market_engine.config import describe_defaults; print(describe_defaults())"
+#
+# Unknown keys are rejected on load, so a typo here is an error, not a no-op.
+
+run:
+  # Global RNG seed. Recorded in every run manifest.
+  seed: 0
+  # Minimum severity emitted by the root logger.
+  log_level: INFO
+  # 'console' is human-readable for development; 'json' is one object per line for anything that will be searched or shipped.
+  log_format: console
+paths:
+  # Root for raw/, processed/, samples/. Relative to the working directory.
+  data_root: data
+  # Root for models/, metrics/, figures/. Relative to the working directory.
+  artifacts_root: artifacts

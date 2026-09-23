@@ -1,0 +1,9 @@
+# Research profile: offline experiments driven from recorded data.
+# Only values that differ from configs/development.yaml appear here.
+
+run:
+  # Fixed non-zero seed so a reported result can be reproduced exactly.
+  # Change it deliberately (and record the change) — never by accident.
+  seed: 20260921
+  # JSON so experiment logs can be searched and joined on run_id.
+  log_format: json
